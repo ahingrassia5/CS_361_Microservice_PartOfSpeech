@@ -3,6 +3,7 @@ Angela Ingrassia
 CS 361 Software Engineering I
 Parts of speech microservice
 Given a string of variable length, returns a JSON object containing each word as well as the parts of speech for each word
+If a word is not found in the response, it is undefined in the dictionary
 */
 
 
@@ -26,18 +27,13 @@ const request = require('request-promise');
 */
 app.post('/', (req, res) => {
 
-    // get words
-    //console.log("POST body: " + req.body.words);
-    let words = req.body.words.split(',');
-
-    // make JSON pbject to return 
+    // get list of words
+    let words = req.body.words.split(',');   
     let response = {};
-    // make list of promises for Promise.all()
     let promiseList = [];
 
     // Loop thruogh input string
     for (curWord of words) {
-        //console.log("curWord is: " + curWord);
         // if the current word is not already in the response
         if (!(curWord in response)) {
             // request info from dictionary
@@ -50,15 +46,11 @@ app.post('/', (req, res) => {
                     // find parts of speech
                     try {
                         let partsOfSpeech = [];  
-                        let meanings = info[0].meanings;
-                        //console.log(meanings);
+                        let meanings = info[0].meanings
                         meanings.forEach((meaning) => {
-                            //console.log(meaning);
                             partsOfSpeech.push(meaning.partOfSpeech)
-
                         })
-                
-                        //let partOfSpeech = info[0].meanings[0].partOfSpeech;   
+                        // add parts of speech to response
                         response[info[0].word] = partsOfSpeech;
                         
                     } catch (err) {
@@ -74,20 +66,17 @@ app.post('/', (req, res) => {
         
     }
 
-    // return dict object only after last request has been completed
+    // return response object only after last request has been completed
     Promise.all(promiseList).then((values) => { 
-        //console.log("returning 'response'"); 
         res.json(response);
     });
 }) 
 
 
-
-
 /*
     Listener
 */
-app.listen(PORT, function(){            // This is the basic syntax for what is called the 'listener' which receives incoming requests on the specified PORT.
+app.listen(PORT, function(){           \
     console.log('Express started on http://localhost:' + PORT + '; press Ctrl-C to terminate.')
 });
     
